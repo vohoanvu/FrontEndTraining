@@ -34,8 +34,8 @@ void InitilizePCBs()
 		char *dup = strdup(prgm);	
 		processes[i].command = dup;
 		processes[i].args = (char **)malloc(sizeof(char*)*3);
-		processes[i].args[1] = strdup(args[i]);	
 		processes[i].args[0] = strdup(prgm);
+		processes[i].args[1] = strdup(args[i]);	
 	}
 	printf("Exit: %s\n",__FUNCTION__);
 }

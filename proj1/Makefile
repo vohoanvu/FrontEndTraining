@@ -8,6 +8,9 @@ CFLAGS = -g -Wall
 
 all: P1 P2 P3 P4 P5 
 
+p1fxns.o: p1fxns.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 P1.o: P1.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -24,7 +27,7 @@ P5.o: P5.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
-P1: P1.o 
+P1: p1fxns.o P1.o 
 	$(CC) -Wall $(LIBS) $^ -o $@
 
 P2: P2.o 
