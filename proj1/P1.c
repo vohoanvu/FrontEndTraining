@@ -44,7 +44,7 @@ int line_count(FILE *fptr)
 int get_word_count(char line[], char hold[]);
 int get_word_count(char line[], char hold[])
 {
-	int index, word_count = 1;
+	int index, word_count = 0;
 	index = p1getword(line, 0, hold);
 	while (index != -1) {
 		word_count++;
@@ -128,18 +128,24 @@ int main(int argc, char *argv[])
 			// allocating memory for each args in a line
 			processes[i].args = (char **)malloc(sizeof(char*) * numWord+1);
 			// save each word into args
+			p1getword(line,0,NextWord);
+			//p1strcpy(processes[i].command, NextWord);
+			processes[i].command = p1strdup(NextWord);
 			int index = 0;
-			for (i = 0; i < numWord; i++) {
+			for (j = 0; j < numWord; j++) {
 				index = p1getword(line,index,NextWord);
-				p1strcpy(processes[i].command, NextWord);
-				p1strcpy(processes[i].args[i], NextWord);
+				processes[i].args[j] = p1strdup(NextWord);
+				//p1strcpy(processes[i].args[j], NextWord);
 			}
 		}
 	}
+
+	//PrintPCB(processes); //for debugging
+
 	// launching all processes, going thru each processes and fork them
-	for (j = 0; j < numProg; j++) {
+	for (i = 0; i < numProg; i++) {
 		pid_t temp = fork();
-		processes[j].PID = temp;
+		processes[i].PID = temp;
 
 		if (temp < 0) {
 			printf("Forking failed!");
@@ -148,15 +154,15 @@ int main(int argc, char *argv[])
 		// child processes
 		if (temp == 0) {
 			// Im not sure if these 2 args below are of proper form?
-			execvp(processes[j].command, processes[j].args);
+			execvp(processes[i].command, processes[i].args);
 		}
 
 	}
-	// not sure what this loop does
+	// This part is for part 2
 	for (j = 0; j < numProg; j++) {
-		wait(processes[j].PID);
-	}
-
+		wait(NULL);
+	} 
+	
 	//print all PCBs
 	int p=0;
 	for(p=0; p< numProg; p++)
