@@ -24,10 +24,13 @@ struct ProcessControlBlock
 	int	status;
 };
 
+void LaunchProcess(struct ProcessControlBlock *launch, int numProgs);
+void FreePCBs(struct ProcessControlBlock *Processes, int numProgs);
 // this function counts how many lines are in the file
-int line_count(FILE *fptr);
-int line_count(FILE *fptr)
+int line_count(char *filechar);
+int line_count(char *filechar)
 {
+	FILE *fptr = fopen(filechar, "r");
 	int count = 0;
 	char chr;
 	chr = getc(fptr);
@@ -111,7 +114,7 @@ int main(int argc, char *argv[])
 	int i,j,len,numProg,numWord;
 	struct ProcessControlBlock *processes = NULL;
 
-	numProg = line_count(in_f);
+	numProg = line_count(argv[1]);
 	processes = (struct ProcessControlBlock *)malloc(sizeof(struct ProcessControlBlock) *numProg);
 	// initialize
 	for (i = 0; i < numProg; i++) {
@@ -119,6 +122,7 @@ int main(int argc, char *argv[])
 		processes[i].status = -1;
 		//read in each line from input file, be careful with infinite loop tho!
 		if (fgets(line, sizeof(line), in_f) != NULL) {
+			printf("%s\n",line);
 			//remove '/n' character
 			len = strlen(line);
 			if (line[len-1] == '\n') {
@@ -135,28 +139,15 @@ int main(int argc, char *argv[])
 			for (j = 0; j < numWord; j++) {
 				index = p1getword(line,index,NextWord);
 				processes[i].args[j] = p1strdup(NextWord);
-				//p1strcpy(processes[i].args[j], NextWord);
 			}
+			processes[i].args[j] = NULL;
 		}
 	}
 
-	//PrintPCB(processes); //for debugging
-
-	// launching all processes, going thru each processes and fork them
-	for (i = 0; i < numProg; i++) {
-		pid_t temp = fork();
-		processes[i].PID = temp;
-
-		if (temp < 0) {
-			printf("Forking failed!");
-			exit(1);
-		}
-		// child processes
-		if (temp == 0) {
-			// Im not sure if these 2 args below are of proper form?
-			execvp(processes[i].command, processes[i].args);
-		}
-
+	// launching all processes, going thru each processes an fork them
+	for(i =0; i< numProg;i++)
+	{
+		LaunchProcess(&processes[i], numProg);	
 	}
 	// This part is for part 2
 	for (j = 0; j < numProg; j++) {
@@ -170,17 +161,58 @@ int main(int argc, char *argv[])
 		PrintPCB(&processes[p]);
 	}
 
-	//free PCBS
-	for (j = 0; j < numProg; j++) {
-		free(processes[j].command);
-		int itr =0;
-		for (itr =0; processes[j].args[itr] != NULL; itr++) {
-			free(processes[j].args[itr]);
-		}
-	}
-	free(processes);
-	processes = NULL;
+	//free
+	FreePCBs(processes,numProg);
 
 	fclose(in_f);
 	return 0;
+}
+
+void LaunchProcess(struct ProcessControlBlock *launch, int numProgs)
+{
+	//printf("Enter: %s\n",__FUNCTION__);
+	int i;
+	//todo:  Fork: Either run exec as child or save pid as parent.
+	// launching all processes, going thru each processes an fork them
+	for (i = 0; i < numProgs; i++) {
+		pid_t temp = fork();
+		launch[i].PID = temp;
+
+		if (temp < 0) {
+			printf("Forking failed!");
+			exit(1);
+		}
+		// child processes
+		if (temp == 0) {
+			/*
+			while (run == 0) {
+				usleep(1);
+			} */
+			execvp(launch[i].command, launch[i].args);
+			//free all memory
+			//FreePCBs(launch, numProgs);
+			//return 0;
+		}
+	}
+	//printf("Exit: %s\n",__FUNCTION__);	
+}
+
+void FreePCBs(struct ProcessControlBlock *Processes, int numProgs)
+{
+	//printf("Enter: %s\n",__FUNCTION__);
+	int i =0; 
+	for( i =0; i< numProgs; i++)
+	{	
+		free(Processes[i].command);
+		// todo: Cleanup Processes[i]
+		int itr =0;
+		for (itr =0; Processes[i].args[itr] != NULL; itr++)
+		{			
+			free(Processes[i].args[itr]);
+		
+		}
+	}
+	free(Processes);
+	Processes=NULL;
+	//printf("Exit: %s\n",__FUNCTION__);
 }
