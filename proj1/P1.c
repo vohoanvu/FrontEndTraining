@@ -24,8 +24,8 @@ struct ProcessControlBlock
 	int	status;
 };
 
-void LaunchProcess(struct ProcessControlBlock *launch, int numProgs);
-void FreePCBs(struct ProcessControlBlock *Processes, int numProgs);
+void LaunchProcess(struct ProcessControlBlock *launch);
+void FreePCBs(struct ProcessControlBlock *Processes);
 // this function counts how many lines are in the file
 int line_count(char *filechar);
 int line_count(char *filechar)
@@ -59,7 +59,7 @@ int get_word_count(char line[], char hold[])
 void PrintPCB(struct ProcessControlBlock *print);
 void PrintPCB(struct ProcessControlBlock *print)
 {
-	//printf("Enter: %s\n",__FUNCTION__);
+	printf("Enter: %s\n",__FUNCTION__);
 	printf("\tCMD: %s\n", print->command);
 	int i=0;
 	while(print->args[i] != NULL)
@@ -92,8 +92,13 @@ void PrintPCB(struct ProcessControlBlock *print)
 			printf("\tStatus: ERROR, invalid status: %d\n",print->status);
 			break;
 	}
-	//printf("Exit: %s\n",__FUNCTION__);
+	printf("Exit: %s\n",__FUNCTION__);
 }
+
+
+
+struct ProcessControlBlock *processes = NULL;
+int numProg;
 
 int main(int argc, char *argv[])
 {
@@ -111,8 +116,7 @@ int main(int argc, char *argv[])
 
 	char line[256];
 	char NextWord[256];
-	int i,j,len,numProg,numWord;
-	struct ProcessControlBlock *processes = NULL;
+	int i,j,len,numWord;
 
 	numProg = line_count(argv[1]);
 	processes = (struct ProcessControlBlock *)malloc(sizeof(struct ProcessControlBlock) *numProg);
@@ -130,7 +134,7 @@ int main(int argc, char *argv[])
 			}
 			numWord = get_word_count(line,NextWord);
 			// allocating memory for each args in a line
-			processes[i].args = (char **)malloc(sizeof(char*) * numWord+1);
+			processes[i].args = (char **)malloc(sizeof(char*) * (numWord+1));
 			// save each word into args
 			p1getword(line,0,NextWord);
 			//p1strcpy(processes[i].command, NextWord);
@@ -143,65 +147,65 @@ int main(int argc, char *argv[])
 			processes[i].args[j] = NULL;
 		}
 	}
-
+	
 	// launching all processes, going thru each processes an fork them
 	for(i =0; i< numProg;i++)
-	{
-		LaunchProcess(&processes[i], numProg);	
+	{	
+		LaunchProcess(&processes[i]);
 	}
 	// This part is for part 2
 	for (j = 0; j < numProg; j++) {
 		wait(NULL);
-	} 
-	
-	//print all PCBs
+		//printf("child exited\n");
+	}
 	int p=0;
+	// print all PCBs
 	for(p=0; p< numProg; p++)
 	{
 		PrintPCB(&processes[p]);
 	}
 
-	//free
-	FreePCBs(processes,numProg);
+	//free all processes
+	FreePCBs(processes);
 
 	fclose(in_f);
 	return 0;
 }
 
-void LaunchProcess(struct ProcessControlBlock *launch, int numProgs)
+void LaunchProcess(struct ProcessControlBlock *launch)
 {
-	//printf("Enter: %s\n",__FUNCTION__);
-	int i;
+	printf("Enter: %s\n",__FUNCTION__);
+	//int i;
 	//todo:  Fork: Either run exec as child or save pid as parent.
 	// launching all processes, going thru each processes an fork them
-	for (i = 0; i < numProgs; i++) {
-		pid_t temp = fork();
-		launch[i].PID = temp;
+	//for (i = 0; i < numProgs; i++) {
+	pid_t temp = fork();
+	launch->PID = temp;
 
-		if (temp < 0) {
-			printf("Forking failed!");
-			exit(1);
-		}
-		// child processes
-		if (temp == 0) {
-			/*
-			while (run == 0) {
-				usleep(1);
-			} */
-			execvp(launch[i].command, launch[i].args);
-			//free all memory
-			//FreePCBs(launch, numProgs);
-			//return 0;
-		}
+	if (temp < 0) {
+		printf("Forking failed!");
+		exit(1);
 	}
-	//printf("Exit: %s\n",__FUNCTION__);	
+	// child processes
+	if (temp == 0) {
+		// send start signal to all childrenn
+		/*
+		while (run == 0) {
+			usleep(1);
+		} */
+		execvp(launch->command, launch->args);
+		FreePCBs(launch);
+		exit(1);
+	}
+	//}
+	printf("Exit: %s\n",__FUNCTION__);	
 }
 
-void FreePCBs(struct ProcessControlBlock *Processes, int numProgs)
+void FreePCBs(struct ProcessControlBlock *Processes)
 {
-	//printf("Enter: %s\n",__FUNCTION__);
+	printf("Enter: %s\n",__FUNCTION__);
 	int i =0; 
-	for( i =0; i< numProgs; i++)
+	for( i =0; i< numProg; i++)
 	{	
 		free(Processes[i].command);
 		// todo: Cleanup Processes[i]
@@ -214,5 +218,5 @@ void FreePCBs(struct ProcessControlBlock *Processes, int numProgs)
 	}
 	free(Processes);
 	Processes=NULL;
-	//printf("Exit: %s\n",__FUNCTION__);
+	printf("Exit: %s\n",__FUNCTION__);
 }
