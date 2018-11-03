@@ -31,7 +31,7 @@ int line_count(char *filechar);
 int line_count(char *filechar)
 {
 	FILE *fptr = fopen(filechar, "r");
-	int count = 1;
+	int count = 0;
 	char chr;
 	chr = getc(fptr);
 	while ( chr != EOF ) {
@@ -97,6 +97,25 @@ void PrintPCB(struct ProcessControlBlock *print)
 
 
 
+void sigusr1_handler(int signum)
+{
+	printf("Enter: %s\n",__FUNCTION__);
+	Run =1;
+	printf("Exit: %s\n",__FUNCTION__);
+}
+
+void sigusr2_handler(int signum)
+{
+	printf("Enter: %s\n",__FUNCTION__);
+	// todo : Block other signals.
+	sigprocmask(SIG_BLOCK, signal_set, NULL)	
+	Exit =1;
+	// todo : unblock other signals
+	sigprocmask(SIG_UNBLOCK, signal_set, NULL)
+	printf("Exit: %s\n",__FUNCTION__);
+}
+
+
 struct ProcessControlBlock *processes = NULL;
 int numProg;
 
@@ -116,10 +135,19 @@ int main(int argc, char *argv[])
 
 	char line[256];
 	char NextWord[256];
-	int i,j,len,numWord;
+	int i,j,len,numWord,sig;
+
+	//signal attributes
+	sig_flag = malloc(sizeof(int));
+	*sig_flag = 1;
+	signal(SIGALRM, alarm_handler);
+	sigset_t sig_set;
+	sigemptyset(&sig_set);
+	sigaddset(&sig_set, SIGUSR1);
+	sigprocmask(SIG_BLOCK, &sig_set, NULL);
+	PROCTAB* proc
 
 	numProg = line_count(argv[1]);
-	//printf("there are %d programs taken in\n",numProg);
 	processes = (struct ProcessControlBlock *)malloc(sizeof(struct ProcessControlBlock) *numProg);
 	// initialize
 	for (i = 0; i < numProg; i++) {
@@ -156,9 +184,19 @@ int main(int argc, char *argv[])
 	}
 	// This part is for part 2
 	for (j = 0; j < numProg; j++) {
-		wait(NULL);
+		printf("Process %d is waking up\n",processes.PID[j]);
+		kill(processes.PID[j], SIGUSR1);
+		//wait(NULL);
 		//printf("child exited\n");
 	}
+
+	for (j = 0; j < numProg; j++) {
+		printf("Stopping the Process %d\n",processes.PID[j]);
+		kill(processes.PID[j], SIGSTOP);
+		//wait(NULL);ssss
+		//printf("child exited\n");
+	}
+
 	int p=0;
 	// print all PCBs
 	for(p=0; p< numProg; p++)
@@ -194,6 +232,7 @@ void LaunchProcess(struct ProcessControlBlock *launch)
 		while (run == 0) {
 			usleep(1);
 		} */
+		sigwait(&sigset, &sig);
 		execvp(launch->command, launch->args);
 		FreePCBs(launch);
 		exit(1);
@@ -214,7 +253,6 @@ void FreePCBs(struct ProcessControlBlock *Processes)
 		for (itr =0; Processes[i].args[itr] != NULL; itr++)
 		{			
 			free(Processes[i].args[itr]);
-		
 		}
 	}
 	free(Processes);
