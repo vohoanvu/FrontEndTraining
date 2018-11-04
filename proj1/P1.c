@@ -7,10 +7,9 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <proc/readproc.h>
 #include <errno.h>
 #include "p1fxns.h"
-
+#include <stdbool.h>
 #define NOTRUN 0
 #define RUNING 1
 #define PAUSED 2
@@ -23,9 +22,10 @@ struct ProcessControlBlock
 	pid_t	PID;
 	int	status;
 };
-
 void LaunchProcess(struct ProcessControlBlock *launch);
 void FreePCBs(struct ProcessControlBlock *Processes);
+void sigalarm_handler(int signum);
+
 // this function counts how many lines are in the file
 int line_count(char *filechar);
 int line_count(char *filechar)
@@ -40,7 +40,8 @@ int line_count(char *filechar)
 		}
 		chr = getc(fptr);
 	}
-	return count;
+	printf("\nNumber of line: %d \n",count);
+	return count + 1;
 }
 
 // this function return the number of words in a line
@@ -56,6 +57,10 @@ int get_word_count(char line[], char hold[])
 	return word_count;
 }
 
+
+
+struct ProcessControlBlock *processes = NULL;
+int numProg;
 void PrintPCB(struct ProcessControlBlock *print);
 void PrintPCB(struct ProcessControlBlock *print)
 {
@@ -94,12 +99,6 @@ void PrintPCB(struct ProcessControlBlock *print)
 	}
 	printf("Exit: %s\n",__FUNCTION__);
 }
-
-
-
-struct ProcessControlBlock *processes = NULL;
-int numProg;
-
 int main(int argc, char *argv[])
 {
 	FILE *in_f = fopen(argv[1], "r");
@@ -119,12 +118,11 @@ int main(int argc, char *argv[])
 	int i,j,len,numWord;
 
 	numProg = line_count(argv[1]);
-	//printf("there are %d programs taken in\n",numProg);
 	processes = (struct ProcessControlBlock *)malloc(sizeof(struct ProcessControlBlock) *numProg);
 	// initialize
 	for (i = 0; i < numProg; i++) {
-		processes[i].PID = NOTRUN;
-		processes[i].status = -1;
+		processes[i].PID = -1;
+		processes[i].status = NOTRUN;
 		//read in each line from input file, be careful with infinite loop tho!
 		if (fgets(line, sizeof(line), in_f) != NULL) {
 			printf("%s\n",line);
@@ -149,56 +147,45 @@ int main(int argc, char *argv[])
 		}
 	}
 	
-	// launching all processes, going thru each processes an fork them
+	
 	for(i =0; i< numProg;i++)
 	{	
 		LaunchProcess(&processes[i]);
 	}
-	// This part is for part 2
-	for (j = 0; j < numProg; j++) {
-		wait(NULL);
-		//printf("child exited\n");
-	}
-	int p=0;
-	// print all PCBs
-	for(p=0; p< numProg; p++)
+	
+	for(i =0; i< numProg;i++)
 	{
-		PrintPCB(&processes[p]);
+		wait(NULL);
 	}
-
+	exit(0);
 	//free all processes
 	FreePCBs(processes);
 
 	fclose(in_f);
 	return 0;
 }
-
 void LaunchProcess(struct ProcessControlBlock *launch)
 {
 	printf("Enter: %s\n",__FUNCTION__);
-	//int i;
 	//todo:  Fork: Either run exec as child or save pid as parent.
 	// launching all processes, going thru each processes an fork them
-	//for (i = 0; i < numProgs; i++) {
-	pid_t temp = fork();
-	launch->PID = temp;
-
-	if (temp < 0) {
+	pid_t pid = fork();	
+	if (pid < 0) {
 		printf("Forking failed!");
 		exit(1);
 	}
-	// child processes
-	if (temp == 0) {
-		// send start signal to all childrenn
-		/*
-		while (run == 0) {
-			usleep(1);
-		} */
+	else if(pid == 0)
+	{
+		
+		printf("\nChild process name \"%s\" with pid %d start \n",launch->command, getpid());
 		execvp(launch->command, launch->args);
-		FreePCBs(launch);
-		exit(1);
+		exit(0);
 	}
-	//}
+	else
+	{
+		launch->PID = pid;
+		launch->status = RUNING;
+	}
 	printf("Exit: %s\n",__FUNCTION__);	
 }
 

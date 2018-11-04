@@ -27,8 +27,11 @@ void LaunchProcess(struct ProcessControlBlock *launch);
 void FreePCBs(struct ProcessControlBlock *Processes);
 
 //signal declaration
+void sigalarm_handler(int signum);
+void sigchild_handler(int signum);
+sigset_t sigset_alarm;
 sigset_t sigset;
-
+int nextProcess = 0;
 // this function counts how many lines are in the file
 int line_count(char *filechar);
 int line_count(char *filechar)
@@ -112,42 +115,26 @@ int main(int argc, char *argv[])
 			processes[i].args[j] = NULL;
 		}
 	}
-	
-	sigaddset(&sigset, SIGUSR1);
 	sigaddset(&sigset, SIGSTOP);
-	sigaddset(&sigset, SIGCONT);
-	//Block signals
-	sigprocmask(SIG_BLOCK,&sigset,NULL);
+	sigemptyset(&sigset_alarm);
+	sigaddset(&sigset_alarm, SIGALRM);
+
 	for(i =0; i< numProg;i++)
 	{	
 		LaunchProcess(&processes[i]);
 	}
+		
 	
-	puts("\nPart 2\n");
-	for(i =0; i< numProg;i++)
-	{	
-		//Send signal to start a process 
-		printf("\nSend SIGUSR1 from %d to %d \n",getpid() ,processes[i].PID);
-		kill(processes[i].PID, SIGUSR1);
-		processes[i].status = RUNING;
-	}
-	for(i =0; i< numProg;i++)
-	{	
-		printf("\nSend SIGSTOP from %d to %d \n",getpid() ,processes[i].PID);
-		kill(processes[i].PID, SIGSTOP);
-		processes[i].status = PAUSED;	
-	}
+	puts("\nPart 3\n");
+	signal(SIGALRM, &sigalarm_handler);
 
-	for(i =0; i< numProg;i++)
-	{
-		printf("\nSend SIGCONT from %d to %d \n",getpid() ,processes[i].PID);
-		kill(processes[numProg - 1 - i].PID, SIGCONT);		
-		processes[i].status = RUNING;	
-	}
+	alarm(2);
+
 	for(i =0; i< numProg;i++)
 	{
 		wait(NULL);
 	}
+	
 	exit(0);
 	//free all processes
 	FreePCBs(processes);
@@ -170,32 +157,52 @@ void LaunchProcess(struct ProcessControlBlock *launch)
 	{
 		
 		printf("\nChild process %s pid %d start \n",launch->command, getpid());
-		int sig;
-		//Raise a signal to parent to update state
-
-		sigwait(&sigset, &sig);
-		if(sig == SIGUSR1)
-		{
-			printf("\nChild process %s pid %d receive the signal SIGUSR1 %d \n",launch->command, getpid() , sig);
-			execvp(launch->command, launch->args);
-			
-		}
-		sigwait(&sigset, &sig);
-		if(sig == SIGCONT)
-		{
-			
-			printf("\nChild process %s pid %d receive the signal continue \n",launch->command, getpid());
-		}
+		execvp(launch->command, launch->args);
 		exit(0);
 	}
 	else
 	{
-		launch->PID = pid;
 		launch->status = RUNING;
+		launch->PID = pid;
 	}
 	printf("Exit: %s\n",__FUNCTION__);	
 }
 
+
+void sigalarm_handler(int signum)
+{
+	printf("Enter: %s Nextprocess %d \n",__FUNCTION__, nextProcess);
+	int i;
+	
+	for(i =0; i< numProg;i++)
+	{
+		//printf("Process from %d %d: %d %s sataaa\n",i,getpid(),processes[i].PID,processes[i].command);
+		//Stop all processes
+		//Check if process is running, stop it
+		int status;	
+		waitpid(processes[i].PID , &status, WNOHANG);
+		if(WIFSIGNALED(status) || WIFEXITED(status))
+		{
+			// i'm not sure if this work
+			// meaning i don't know if this process has REALLY exited or not!!
+			//printf("Process: %d exit\n",processes[i].PID);
+			//processes[i].status = EXITED;	
+		} 
+		if(processes[i].status != EXITED)
+		{	
+			//printf("Process: %d exit\n",processes[i].PID);
+			kill(processes[i].PID, SIGSTOP);
+		}
+		processes[i].status = NOTRUN;
+	}	
+	kill(processes[nextProcess].PID, SIGCONT);
+	processes[nextProcess].status = PAUSED;
+	nextProcess ++;
+	nextProcess = nextProcess % numProg;	
+	alarm(2);
+
+	printf("Exit: %s\n",__FUNCTION__);
+}
 void FreePCBs(struct ProcessControlBlock *Processes)
 {
 	printf("Enter: %s\n",__FUNCTION__);

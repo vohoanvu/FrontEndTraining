@@ -23,18 +23,26 @@ struct ProcessControlBlock
 	int	status;
 };
 
+//int proc_index = 0;
+void sigusr1_handler(int signum);
+void sigusr1_handlerchild(int signum);
 void LaunchProcess(struct ProcessControlBlock *launch);
 void FreePCBs(struct ProcessControlBlock *Processes);
+void sigalarm_handler(int signum);
 
 //signal declaration
 sigset_t sigset;
+
+
+sigset_t sigset_alarm;
+
 
 // this function counts how many lines are in the file
 int line_count(char *filechar);
 int line_count(char *filechar)
 {
 	FILE *fptr = fopen(filechar, "r");
-	int count = 1;
+	int count = 0;
 	char chr;
 	chr = getc(fptr);
 	while ( chr != EOF ) {
@@ -59,7 +67,6 @@ int get_word_count(char line[], char hold[])
 	}
 	return word_count;
 }
-
 
 
 struct ProcessControlBlock *processes = NULL;
@@ -112,12 +119,17 @@ int main(int argc, char *argv[])
 			processes[i].args[j] = NULL;
 		}
 	}
-	
+	sigemptyset(&sigset); //part 2
 	sigaddset(&sigset, SIGUSR1);
 	sigaddset(&sigset, SIGSTOP);
 	sigaddset(&sigset, SIGCONT);
 	//Block signals
-	sigprocmask(SIG_BLOCK,&sigset,NULL);
+	sigprocmask(SIG_BLOCK,&sigset,NULL); // ending part2
+	//part 3
+	sigemptyset(&sigset_alarm);
+	sigaddset(&sigset_alarm, SIGALRM);
+	//Unblock signal alarm
+	sigprocmask(SIG_UNBLOCK,&sigset_alarm,NULL);//ending part3
 	for(i =0; i< numProg;i++)
 	{	
 		LaunchProcess(&processes[i]);
@@ -131,8 +143,11 @@ int main(int argc, char *argv[])
 		kill(processes[i].PID, SIGUSR1);
 		processes[i].status = RUNING;
 	}
-	for(i =0; i< numProg;i++)
-	{	
+
+	sleep(0.5);
+
+	for(i =0; i< numProg;i++) {
+
 		printf("\nSend SIGSTOP from %d to %d \n",getpid() ,processes[i].PID);
 		kill(processes[i].PID, SIGSTOP);
 		processes[i].status = PAUSED;	
@@ -141,12 +156,15 @@ int main(int argc, char *argv[])
 	for(i =0; i< numProg;i++)
 	{
 		printf("\nSend SIGCONT from %d to %d \n",getpid() ,processes[i].PID);
-		kill(processes[numProg - 1 - i].PID, SIGCONT);		
+		kill(processes[i].PID, SIGCONT);		
 		processes[i].status = RUNING;	
-	}
+	}//ending part 2
+	signal(SIGALRM, &sigalarm_handler);
+	alarm(2);
+	
 	for(i =0; i< numProg;i++)
 	{
-		wait(NULL);
+		wait(&processes[i].PID);
 	}
 	exit(0);
 	//free all processes
@@ -155,7 +173,86 @@ int main(int argc, char *argv[])
 	fclose(in_f);
 	return 0;
 }
+bool swap = true;
+void sigalarm_handler(int signum)
+{
+	printf("Enter: %s\n",__FUNCTION__);
+	int i;
 
+	for (i = 0; i < numProg; i++) {
+		if(i == numProg)
+		{
+			//todo: Send a sigusr2 to oursevles to exit.
+			printf("\nSend SIGUSR2 from %d to %d \n",getpid() ,processes[i].PID);
+			kill(processes[i].PID, SIGUSR2);
+		}
+		else
+		{
+			switch(processes[i].status)
+			{
+				case NOTRUN:
+					//todo: send correct signal
+					//todo: update process state
+					printf("\nSend SIGUSR1 from %d to %d \n",getpid() ,processes[i].PID);
+					kill(processes[i].PID, SIGUSR1);
+					processes[i].status = RUNING;
+					break;
+				case RUNING:
+					//todo: send correct signal
+					//todo: update process state
+					printf("\nSend SIGSTOP from %d to %d \n",getpid() ,processes[i].PID);
+					kill(processes[i].PID, SIGSTOP);	
+					processes[i].status = PAUSED;
+					break;
+				case PAUSED:
+					//todo: send correct signal
+					//todo: update process state
+					printf("\nSend SIGUSR1 from %d to %d \n",getpid() ,processes[i].PID);
+					kill(processes[i].PID, SIGCONT);
+					processes[i].status = RUNING;
+					break;
+				case EXITED:
+					i++;
+					break;
+		
+			}
+		}
+	}
+	/*
+	if(swap)
+	{
+		printf("\nSend SIGSTOP from %d to %d \n",getpid() ,processes[1].PID);
+		kill(processes[1].PID, SIGSTOP);				
+		printf("\nSend SIGUSR1 from %d to %d \n",getpid() ,processes[0].PID);
+		kill(processes[0].PID, SIGCONT);
+		
+		swap = false;
+	}
+	else
+	{
+		printf("\nSend SIGUSR1 from %d to %d \n",getpid() ,processes[1].PID);
+		kill(processes[0].PID, SIGSTOP);
+		printf("\nSend SIGSTOP from %d to %d \n",getpid() ,processes[0].PID);
+		kill(processes[1].PID, SIGCONT);
+		swap = true;
+	}	*/
+	alarm(2);
+	
+	printf("Exit: %s\n",__FUNCTION__);
+}
+void sigusr1_handler(int signum)
+{
+	printf("Enter: %s\n",__FUNCTION__);
+	
+	printf("Exit: %s\n",__FUNCTION__);
+}
+
+void sigusr1_handlerchild(int signum)
+{
+	printf("Enter: %s\n",__FUNCTION__);
+	
+	printf("Exit: %s\n",__FUNCTION__);
+}
 void LaunchProcess(struct ProcessControlBlock *launch)
 {
 	printf("Enter: %s\n",__FUNCTION__);
@@ -171,8 +268,9 @@ void LaunchProcess(struct ProcessControlBlock *launch)
 		
 		printf("\nChild process %s pid %d start \n",launch->command, getpid());
 		int sig;
-		//Raise a signal to parent to update state
-
+		
+		launch->status = PAUSED;
+		// part 2
 		sigwait(&sigset, &sig);
 		if(sig == SIGUSR1)
 		{
@@ -180,6 +278,7 @@ void LaunchProcess(struct ProcessControlBlock *launch)
 			execvp(launch->command, launch->args);
 			
 		}
+		
 		sigwait(&sigset, &sig);
 		if(sig == SIGCONT)
 		{
@@ -191,7 +290,6 @@ void LaunchProcess(struct ProcessControlBlock *launch)
 	else
 	{
 		launch->PID = pid;
-		launch->status = RUNING;
 	}
 	printf("Exit: %s\n",__FUNCTION__);	
 }
