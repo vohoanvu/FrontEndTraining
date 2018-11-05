@@ -25,7 +25,7 @@ struct ProcessControlBlock
 
 void LaunchProcess(struct ProcessControlBlock *launch);
 void FreePCBs(struct ProcessControlBlock *Processes);
-
+void PrintPCB(struct ProcessControlBlock *print);
 //signal declaration
 void sigalarm_handler(int signum);
 void sigchild_handler(int signum);
@@ -37,7 +37,7 @@ int line_count(char *filechar);
 int line_count(char *filechar)
 {
 	FILE *fptr = fopen(filechar, "r");
-	int count = 1;
+	int count = 0;
 	char chr;
 	chr = getc(fptr);
 	while ( chr != EOF ) {
@@ -47,7 +47,7 @@ int line_count(char *filechar)
 		chr = getc(fptr);
 	}
 	printf("\nNumber of line: %d \n",count);
-	return count;
+	return count+1;
 }
 
 // this function return the number of words in a line
@@ -127,9 +127,26 @@ int main(int argc, char *argv[])
 	
 	puts("\nPart 3\n");
 	signal(SIGALRM, &sigalarm_handler);
-
 	alarm(2);
-
+	bool isStopAll =  false;
+	//Check if all processes are exited
+	while(1)
+	{
+		for(i =0; i< numProg;i++)
+		{
+			if(processes[i].status == PAUSED || processes[i].status == RUNING)
+			{
+				isStopAll = false;
+				break;
+			}
+			isStopAll = true;
+		}
+		if(isStopAll == true)
+		{
+			break;	
+		}
+		
+	}
 	for(i =0; i< numProg;i++)
 	{
 		wait(NULL);
@@ -142,7 +159,43 @@ int main(int argc, char *argv[])
 	fclose(in_f);
 	return 0;
 }
-
+void PrintPCB(struct ProcessControlBlock *print)
+{
+	//printf("Enter: %s\n",__FUNCTION__);
+	printf("\tCMD: %s", print->command);
+	//int i=0;
+	//while(print->args[i] != NULL)
+	//{
+	//	i++;
+	//}
+	//printf("\tArgs: %d\n", i);
+	//i =0;
+	//while(print->args[i] != NULL)
+	//{
+	//	printf("\t\tArg: %s\n", print->args[i]);
+	//	i++;
+	//}
+	//printf("\tPID: %d\n",print->PID);
+	switch(print->status)
+	{
+		case NOTRUN:
+			printf("\tStatus: NOTRUN\n");
+			break;
+		case RUNING:
+			printf("\tStatus: RUNING\n");
+			break;
+		case PAUSED:
+			printf("\tStatus: PAUSED\n");
+			break;
+		case EXITED:
+			printf("\tStatus: EXITED\n");
+			break;
+		default:
+			printf("\tStatus: ERROR, invalid status: %d\n",print->status);
+			break;
+	}
+	//printf("Exit: %s\n",__FUNCTION__);
+}
 void LaunchProcess(struct ProcessControlBlock *launch)
 {
 	printf("Enter: %s\n",__FUNCTION__);
@@ -156,9 +209,10 @@ void LaunchProcess(struct ProcessControlBlock *launch)
 	else if(pid == 0)
 	{
 		
-		printf("\nChild process %s pid %d start \n",launch->command, getpid());
+		printf("\nChild process \"%s\" pid %d start \n",launch->command, getpid());
 		execvp(launch->command, launch->args);
-		exit(0);
+		printf("\nChild process \"%s\" pid %d exit \n",launch->command, getpid());
+		exit(1);
 	}
 	else
 	{
@@ -168,40 +222,64 @@ void LaunchProcess(struct ProcessControlBlock *launch)
 	printf("Exit: %s\n",__FUNCTION__);	
 }
 
-
 void sigalarm_handler(int signum)
 {
-	printf("Enter: %s Nextprocess %d \n",__FUNCTION__, nextProcess);
-	int i;
+	int status;	
+	printf("2 senconds passed - Enter: %s\n",__FUNCTION__);
 	
+	int i;
 	for(i =0; i< numProg;i++)
 	{
-		//printf("Process from %d %d: %d %s sataaa\n",i,getpid(),processes[i].PID,processes[i].command);
-		//Stop all processes
-		//Check if process is running, stop it
-		int status;	
-		waitpid(processes[i].PID , &status, WNOHANG);
-		if(WIFSIGNALED(status) || WIFEXITED(status))
-		{
-			// i'm not sure if this work
-			// meaning i don't know if this process has REALLY exited or not!!
-			//printf("Process: %d exit\n",processes[i].PID);
-			//processes[i].status = EXITED;	
-		} 
-		if(processes[i].status != EXITED)
-		{	
-			//printf("Process: %d exit\n",processes[i].PID);
+			//Send sigkill to determine which process is terminated at the next 
 			kill(processes[i].PID, SIGSTOP);
-		}
-		processes[i].status = NOTRUN;
 	}	
+
+	for(i =0; i< numProg;i++)
+	{
+		waitpid(processes[i].PID , &status, WNOHANG|WUNTRACED);
+		//Unexited process is stopped by a signal
+		if(WIFSTOPPED(status) && processes[i].status != EXITED)
+		{
+			if(processes[i].status == RUNING)
+			{			
+				printf("Process: %d \"%s\" is paused\n",processes[i].PID, processes[i].command);
+			}
+			processes[i].status = PAUSED;	
+		}
+		else //Process is exited
+		{
+			processes[i].status = EXITED;	
+		}
+
+	}	
+	for(i =0; i< numProg;i++)
+	{
+		if(processes[nextProcess].status == PAUSED)
+		{
+			break;
+		}
+
+		nextProcess ++;
+		nextProcess = nextProcess % numProg;
+	}	
+	if(i == numProg)
+	{
+		printf("All processes are exited \n");
+		return;
+	}
+	processes[nextProcess].status = RUNING;
+	printf("Process: %d \"%s\" is waked up\n",processes[nextProcess].PID, processes[nextProcess].command);
 	kill(processes[nextProcess].PID, SIGCONT);
-	processes[nextProcess].status = PAUSED;
 	nextProcess ++;
 	nextProcess = nextProcess % numProg;	
+	for(i =0; i< numProg;i++)
+	{
+
+			PrintPCB(&processes[i]);
+	}	
 	alarm(2);
 
-	printf("Exit: %s\n",__FUNCTION__);
+	//printf("Exit: %s\n",__FUNCTION__);
 }
 void FreePCBs(struct ProcessControlBlock *Processes)
 {
