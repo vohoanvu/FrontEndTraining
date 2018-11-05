@@ -1,0 +1,6 @@
+ls -a -r -s
+sleep 1
+testsss
+invalid name
+./iobound -minutes 1
+./cpubound -minutes 1

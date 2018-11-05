@@ -1,0 +1,474 @@
+
+Number of line: 5 
+ls -a -r -s
+
+sleep 1
+
+test
+
+invalid name
+
+./iobound -minutes 1
+
+./cpubound -minutes 1
+Enter: LaunchProcess
+Exit: LaunchProcess
+Enter: LaunchProcess
+Exit: LaunchProcess
+Enter: LaunchProcess
+Exit: LaunchProcess
+Enter: LaunchProcess
+
+Child process "invalid" pid 6699 start 
+
+Child process "invalid" pid 6699 exit 
+total 424
+  4 testprgms-tmp~
+  4 testprgms-tmp
+  4 testprgms
+  4 TEST_ME
+ 96 project-1.pdf
+100 Project_1_export.zip
+ 20 P3.o
+  8 P3.c~
+  8 P3.c
+ 24 P3
+ 16 P1.o
+ 12 p1fxns.o
+  4 p1fxns.h
+  8 p1fxns.c
+  8 P1.c
+ 28 P1
+  4 Makefile~
+  4 Makefile
+  4 log.txt
+  8 iobound.o
+  4 iobound.c~
+  4 iobound.c
+ 12 iobound
+  8 cpubound.o
+  4 cpubound.c~
+  4 cpubound.c
+ 12 cpubound
+  4 ..
+  4 .
+
+Number of line: 5 
+ls -a -r -s
+
+sleep 1
+
+test
+
+invalid name
+
+./iobound -minutes 1
+
+./cpubound -minutes 1
+Enter: LaunchProcess
+Exit: LaunchProcess
+Enter: LaunchProcess
+Exit: LaunchProcess
+Enter: LaunchProcess
+Exit: LaunchProcess
+Enter: LaunchProcess
+Exit: LaunchProcess
+Enter: LaunchProcess
+Exit: LaunchProcess
+Enter: LaunchProcess
+Exit: LaunchProcess
+
+Part 3
+
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: RUNING
+	CMD: sleep	PID: 6697
+	Status: RUNING
+	CMD: test	PID: 6698
+	Status: RUNING
+	CMD: invalid	PID: 6699
+	Status: RUNING
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	StatusCPUBOUND start
+CPUBOUND end
+IOBOUND start
+IOBOUND end
+: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: PAUSED
+Process: 6701 "./cpubound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: PAUSED
+	CMD: ./cpubound	PID: 6701
+	Status: RUNING
+Process: 6700 "./iobound" is wakeup with state 1
+Exit: sigalarm_handler
+Enter: sigalarm_handler
+	CMD: ls	PID: 6696
+	Status: EXITED
+	CMD: sleep	PID: 6697
+	Status: EXITED
+	CMD: test	PID: 6698
+	Status: EXITED
+	CMD: invalid	PID: 6699
+	Status: EXITED
+	CMD: ./iobound	PID: 6700
+	Status: RUNING
+	CMD: ./cpubound	PID: 6701
+	Status: EXITED

@@ -1,0 +1,4 @@
+Part 1: Everything compiles and run without errors or segfault. All processes are launched correctly. There're possible memory leaks although there are no bytes lost (I can't track this down due to time constrainst)
+Part 2: Everything compiles and run without errors or segfault. The MCP sends and receives signals correctly. There're possible memory leaks although there are no bytes lost.
+Part 3: Everything compiles and run without errors or segfault. The MCP scheduler gives each processes 2 seconds to run until it stops and run the next processes in the line (I think, the logic seems right in my head!). There're possible memory leaks although there are no bytes lost.
+Part 4: There are no Part 4. That's all I could do.

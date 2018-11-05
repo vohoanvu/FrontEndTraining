@@ -1,8 +1,3 @@
-/*	Author: Vu Vo 
-	ID: 951437454
-	CIS 415 Project 1
-	This is my own work
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -14,7 +9,7 @@
 #include <signal.h>
 #include <errno.h>
 #include "p1fxns.h"
-#include <stdbool.h>
+
 #define NOTRUN 0
 #define RUNING 1
 #define PAUSED 2
@@ -27,16 +22,15 @@ struct ProcessControlBlock
 	pid_t	PID;
 	int	status;
 };
+
 void LaunchProcess(struct ProcessControlBlock *launch);
 void FreePCBs(struct ProcessControlBlock *Processes);
-void sigalarm_handler(int signum);
-
 // this function counts how many lines are in the file
 int line_count(char *filechar);
 int line_count(char *filechar)
 {
 	FILE *fptr = fopen(filechar, "r");
-	int count = 1;
+	int count = 0;
 	char chr;
 	chr = getc(fptr);
 	while ( chr != EOF ) {
@@ -45,8 +39,7 @@ int line_count(char *filechar)
 		}
 		chr = getc(fptr);
 	}
-	printf("\nNumber of line: %d \n",count);
-	return count + 1;
+	return count;
 }
 
 // this function return the number of words in a line
@@ -62,10 +55,6 @@ int get_word_count(char line[], char hold[])
 	return word_count;
 }
 
-
-
-struct ProcessControlBlock *processes = NULL;
-int numProg;
 void PrintPCB(struct ProcessControlBlock *print);
 void PrintPCB(struct ProcessControlBlock *print)
 {
@@ -104,6 +93,12 @@ void PrintPCB(struct ProcessControlBlock *print)
 	}
 	printf("Exit: %s\n",__FUNCTION__);
 }
+
+
+
+struct ProcessControlBlock *processes = NULL;
+int numProg;
+
 int main(int argc, char *argv[])
 {
 	FILE *in_f = fopen(argv[1], "r");
@@ -126,8 +121,8 @@ int main(int argc, char *argv[])
 	processes = (struct ProcessControlBlock *)malloc(sizeof(struct ProcessControlBlock) *numProg);
 	// initialize
 	for (i = 0; i < numProg; i++) {
-		processes[i].PID = -1;
-		processes[i].status = NOTRUN;
+		processes[i].PID = NOTRUN;
+		processes[i].status = -1;
 		//read in each line from input file, be careful with infinite loop tho!
 		if (fgets(line, sizeof(line), in_f) != NULL) {
 			printf("%s\n",line);
@@ -152,44 +147,91 @@ int main(int argc, char *argv[])
 		}
 	}
 	
+	// launching all processes, going thru each processes an fork them
 	for(i =0; i< numProg;i++)
 	{	
 		LaunchProcess(&processes[i]);
+		int st = 0;		
+		waitpid(processes[j].PID, &processes[i].status, WNOHANG);
+		PrintPCB(&processes[i]);
+	}
+	for (j = 0; j < numProg; j++) {
+		int st = 0;		
+		waitpid(processes[j].PID, &st, WNOHANG);
+		printf("\nchild %d status %d\n",processes[j].PID,st);
+	}
+	// This part is for part 2
+	for (j = 0; j < numProg; j++) {
+		int status;
+		int ret_pid = wait(&status);
+		printf("\nchild %d exited\n",ret_pid);
 	}
 
-	for(i =0; i< numProg;i++)
-	{
-		wait(NULL);
-	}
-	exit(0);
 	//free all processes
 	FreePCBs(processes);
 
 	fclose(in_f);
 	return 0;
 }
+
 void LaunchProcess(struct ProcessControlBlock *launch)
 {
 	printf("Enter: %s\n",__FUNCTION__);
+	//int i;
 	//todo:  Fork: Either run exec as child or save pid as parent.
 	// launching all processes, going thru each processes an fork them
-	pid_t pid = fork();	
-	if (pid < 0) {
+	//for (i = 0; i < numProgs; i++) {
+	pid_t temp = fork();
+
+
+	if (temp < 0) {
 		printf("Forking failed!");
 		exit(1);
 	}
-	else if(pid == 0)
-	{
+	// child processes
+	else if (temp == 0) {
+		// send start signal to all childrenn
+		/*
+		while (run == 0) {
+			usleep(1);
+		} */
 		
-		printf("\nChild process name \"%s\" with pid %d start \n",launch->command, getpid());
+		int pid = getpid();
+		int st = 0;
+		int *status;
+		status = &st;
+		waitpid(pid, status, WNOHANG);
+		//printf("\t PID: %d --- Status: %d \n", pid ,*status);	
 		execvp(launch->command, launch->args);
-		exit(0);
+		//FreePCBs(launch);
+		exit(1);
 	}
 	else
 	{
-		launch->PID = pid;
-		launch->status = RUNING;
+		launch->PID = temp;
+		int status = 0;
+		//waitpid(launch->PID,&status , WNOHANG);
+		/*char* command1 = malloc(9);
+		command1 = "pidof -x ";
+		char* command2 = malloc(12);
+		command2 = " > /dev/null";
+		char* command3 = malloc(21);
+		command3 = strcat(command1,launch->command);
+		char* command = malloc(100);
+		command = strcat(command3, command2);
+			
+		if(0 == system(command)) {
+      			//A process having name PROCESS is running.
+			status = 1;
+   		}
+		else{
+			status = 0;
+		}
+		*/	
+		//printf("\t PID: %d --- Status: %d", launch->PID,status);	
+		launch->status = status;		
 	}
+	//}
 	printf("Exit: %s\n",__FUNCTION__);	
 }
 
