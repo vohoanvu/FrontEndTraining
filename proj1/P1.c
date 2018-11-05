@@ -7,7 +7,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <proc/readproc.h>
+//#include <proc/readproc.h>
 #include <errno.h>
 #include "p1fxns.h"
 
