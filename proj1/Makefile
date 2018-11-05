@@ -30,16 +30,16 @@ P5.o: P5.c
 P1: p1fxns.o P1.o 
 	$(CC) -Wall $(LIBS) $^ -o $@
 
-P2: P2.o 
+P2: p1fxns.o P2.o 
 	$(CC) -Wall $(LIBS) $^ -o $@
 
-P3: P3.o 
+P3: p1fxns.o P3.o 
 	$(CC) -Wall $(LIBS) $^ -o $@
 
-P4: P4.o 
+P4: p1fxns.o P4.o 
 	$(CC) -Wall $(LIBS) $^ -o $@
 
-P5: P5.o 
+P5: p1fxns.o P5.o 
 	$(CC) -Wall $(LIBS) $^ -o $@
 
 

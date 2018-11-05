@@ -31,7 +31,7 @@ int line_count(char *filechar);
 int line_count(char *filechar)
 {
 	FILE *fptr = fopen(filechar, "r");
-	int count = 0;
+	int count = 1;
 	char chr;
 	chr = getc(fptr);
 	while ( chr != EOF ) {
@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
 	int i,j,len,numWord;
 
 	numProg = line_count(argv[1]);
+	//printf("there are %d programs taken in\n",numProg);
 	processes = (struct ProcessControlBlock *)malloc(sizeof(struct ProcessControlBlock) *numProg);
 	// initialize
 	for (i = 0; i < numProg; i++) {
@@ -152,7 +153,6 @@ int main(int argc, char *argv[])
 	for(i =0; i< numProg;i++)
 	{	
 		LaunchProcess(&processes[i]);
-	}
 	}
 	// This part is for part 2
 	for (j = 0; j < numProg; j++) {
@@ -220,3 +220,4 @@ void FreePCBs(struct ProcessControlBlock *Processes)
 	free(Processes);
 	Processes=NULL;
 	printf("Exit: %s\n",__FUNCTION__);
+}
