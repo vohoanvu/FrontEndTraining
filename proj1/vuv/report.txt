@@ -1,4 +1,4 @@
 Part 1: Everything compiles and run without errors or segfault. All processes are launched correctly. There're possible memory leaks although there are no bytes lost (I can't track this down due to time constrainst)
 Part 2: Everything compiles and run without errors or segfault. The MCP sends and receives signals correctly. There're possible memory leaks although there are no bytes lost.
-Part 3: Everything compiles and run without errors or segfault. My scheduler works on Ubuntu but it does not work on Arch. In particularly, i think the behavior of waitpid(...,...,WNOHANG|WUNTRACED) is different in Arch, it cannot tell if a process is "paused" by a signal or "exited" by workload completion. Whereas that behavior works as expected on Ubuntu. There're possible memory leaks although there are no bytes lost.
+Part 3: Everything compiles and run without errors or segfault. There're possible memory leaks although there are no bytes lost.
 Part 4: There are no Part 4. That's all I could do.

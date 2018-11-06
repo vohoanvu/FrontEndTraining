@@ -124,7 +124,6 @@ int main(int argc, char *argv[])
 		LaunchProcess(&processes[i]);
 	}
 		
-	
 	puts("\nPart 3\n");
 	signal(SIGALRM, &sigalarm_handler);
 	alarm(2);
@@ -236,19 +235,22 @@ void sigalarm_handler(int signum)
 
 	for(i =0; i< numProg;i++)
 	{
-		waitpid(processes[i].PID , &status, WNOHANG|WUNTRACED);
-		//Unexited process is stopped by a signal
-		if(WIFSTOPPED(status) && processes[i].status != EXITED)
+		if(processes[i].status == RUNING)
 		{
-			if(processes[i].status == RUNING)
-			{			
-				printf("Process: %d \"%s\" is paused\n",processes[i].PID, processes[i].command);
+			waitpid(processes[i].PID , &status, WUNTRACED);
+			//Unexited process is stopped by a signal
+			if(WIFSTOPPED(status) && processes[i].status != EXITED)
+			{
+				if(processes[i].status == RUNING)
+				{			
+					printf("Process: %d \"%s\" is paused\n",processes[i].PID, processes[i].command);
+				}
+				processes[i].status = PAUSED;	
 			}
-			processes[i].status = PAUSED;	
-		}
-		else //Process is exited
-		{
-			processes[i].status = EXITED;	
+			else //Process is exited
+			{
+				processes[i].status = EXITED;	
+			}
 		}
 
 	}	

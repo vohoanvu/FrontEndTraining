@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     char b[1000];
     int fd = open("/dev/null", O_WRONLY);
     char name[128];
-
+printf("IOBOUND start \n");
 /*
  * process environment variable and command line arguments
  */

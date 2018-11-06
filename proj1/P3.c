@@ -124,7 +124,6 @@ int main(int argc, char *argv[])
 		LaunchProcess(&processes[i]);
 	}
 		
-	
 	puts("\nPart 3\n");
 	signal(SIGALRM, &sigalarm_handler);
 	alarm(2);

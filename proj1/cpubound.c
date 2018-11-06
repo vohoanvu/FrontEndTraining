@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
     long long i;
     int minutes = 1, j;
     char name[128];
-
+printf("CPUBOUND start \n");
 /*
  * process environment variable and command line arguments
  */

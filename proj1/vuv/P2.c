@@ -1,8 +1,3 @@
-/*	Author: Vu Vo 
-	ID: 951437454
-	CIS 415 Project 1
-	This is my own work
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -39,7 +34,7 @@ int line_count(char *filechar);
 int line_count(char *filechar)
 {
 	FILE *fptr = fopen(filechar, "r");
-	int count = 1;
+	int count = 0;
 	char chr;
 	chr = getc(fptr);
 	while ( chr != EOF ) {
@@ -151,7 +146,7 @@ int main(int argc, char *argv[])
 	}
 	for(i =0; i< numProg;i++)
 	{
-		wait(NULL);
+		wait(&processes[i].PID);
 	}
 	exit(0);
 	//free all processes
