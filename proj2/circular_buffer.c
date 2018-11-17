@@ -73,9 +73,20 @@ int dequeue(struct queue * Q_ptr)
     */
 }
 
-int read_post(struct queue * Q_ptr, int lastentry)
+int getentry(struct queue * Q_ptr, int lastentry)
 {
-    
+    pthread_mutex_lock(&Q_ptr -> topic_lock);
+    {
+        /* Check if buffer is empty.
+        Return -1 and allow caller to try again. */
+        pthread_mutex_unlock(&Q_ptr -> topic_lock);
+        return -1;
+    }
+    int data = Q_ptr->circular_buffer[Q_ptr->out].message;
+    Q_ptr->out = (Q_ptr->out +1) % MAXENTRIES;
+    pthread_mutex_unlock(&Q_ptr->topic_lock);
+    return data;
+
 }
 
 void printtopicQ(struct queue *Q_ptr)
