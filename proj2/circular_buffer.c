@@ -22,12 +22,14 @@ struct topicentry{
 
 
 struct queue{
+    int tail = 0; //in
+    int head = 0; //out
     pthread_mutex_t topic_lock;
     struct topicentry circular_buffer[MAXENTRIES];
-    int tail =0; //in
-    int head =0; //out
     int topic_counter=0;
 };
+
+struct queue Topic_Q_ptr[NUMTOPICS];
 
 int enqueue(struct queue *Q_ptr, struct topicentry *new_post)
 {
@@ -119,8 +121,8 @@ int getentry(struct queue * Q_ptr, int lastentry,struct topicentry *t)
 
 void printtopicQ(struct queue *Q_ptr)
 {
-    printf("in  = %d\n", Q_ptr->in);
-    printf("out = %d\n", Q_ptr->out);
+    printf("in  = %d\n", Q_ptr->tail);
+    printf("out = %d\n", Q_ptr->head);
 }
 
 void* pub()
@@ -130,31 +132,30 @@ void* pub()
     pthread_t tid = pthread_self();
     printf("\n thread id = %d.\n", (int)tid);
     
-    struct queue Topic_Q_ptr;
-    printf("\n Created topic queue.\n");
-    
     struct topicentry this_topic;
     printf("\n Created topic entry.\n");
-    
-    Topic_Q_ptr.tail =0;
-    Topic_Q_ptr.head = 0;
 
-    printtopicQ(&Topic_Q_ptr);
-
+    //printtopicQ(&Topic_Q_ptr);
+    /*
     printf("\n Creating the topic lock.\n");
 
     if(pthread_mutex_init(&(Topic_Q_ptr.topic_lock), NULL) != 0)
     {
         printf("\n mutex init has failed\n");
-    }
+    } */
     
-    for(int i = 0; i < MAXENTRIES; i++)
+    for(int i = 0; i < NUMTOPICS; i++)
     {
         printf("\n Creating a topic: %d\n", i);
-        this_topic.entrynum = (int)(tid) * 1000 + i;
-        int indicator = enqueue(&Topic_Q_ptr, &this_topic);
-        printtopicQ(&Topic_Q_ptr);
-        while (indicator == -1)
+        //this_topic.message = (int)(tid) * 1000 + i;
+        char str[QUACKSIZE] = "This topic entry is for testing....";
+        for (int  j = 0; j < QUACKSIZE; j++) {
+            this_topic.message[i] = str[i];
+        }
+
+        int indicator = enqueue(Topic_Q_ptr[i], &this_topic);
+        printtopicQ(&Topic_Q_ptr[i]);
+        while (indicator == -1) // full topic queue
         {
             pthread_yield();
             indicator = enqueue(&Topic_Q_ptr, &this_topic);
@@ -162,7 +163,7 @@ void* pub()
         }
         printf("successfully added to the queue: %d\n", indicator);
     }
-    pthread_mutex_destroy(&(Topic_Q_ptr.topic_lock));
+    //pthread_mutex_destroy(&(Topic_Q_ptr.topic_lock));
     return NULL;
 
 }
@@ -177,11 +178,14 @@ void* sub()
     printf("\n Sub thread running.\n");
     
     subscriber = pthread_self();
-    printf("\n thread id = %d.\n", (int)tid);
-
-
-    int getentry(struct queue * Q_ptr, int lastentry,struct topicentry *t);
-
+    //printf("\n thread id = %d.\n", (int)tid);
+    // create a topic entry to hold the one taken from the queue
+    struct topicentry *t;
+    printf("\n Created topic entry.\n");
+    
+    int last_entry =0;
+    
+    getentry(Topic_Q_ptr,last_entry,t);
 }
 
 void* del()
@@ -193,15 +197,21 @@ int main(int argc, char *argsv[])
     int num_pubs = 1;
     int num_subs = 1;
     int error;
-
+    // initializing topic queues
+    for (int i = 0; i < NUMTOPICS; i++) {
+        error = pthread_mutex_init(&(Topic_Q_ptr[i].topic_lock),NULL);
+        if (error != 0)
+            printf("\n Thread can't be created : [%s]\n", strerror(error));
+    }
+    // actually creating threads
     error = pthread_create(&publisher, NULL, &pub, NULL);
     if (error != 0)
-        printf("\n Thread can't be created : [%s]\n", strerror(error));
-
-    // error = pthread_create(&subscriber, NULL, sub, NULL);
-    // if (error != 0)
-    //     printf("\n Thread can't be created : [%s]", strerror(error));
+        printf("\n Thread can't be created : [%s]", strerror(error));
+    error = pthread_create(&subscriber, NULL, sub, NULL);
+    if (error != 0)
+        printf("\n Thread can't be created : [%s]", strerror(error));
     
     pthread_join(publisher, NULL);
+    pthread_join(subscriber, NULL);
     return 0;
 }
