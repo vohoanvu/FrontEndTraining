@@ -3,14 +3,15 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <tsbqueue.h>
-#include <tsiterator.h>
+#include <stdbool.h>
+#include "tsbqueue.h"
+#include "tsiterator.h"
 
 #define NUMTOPICS 1
 #define MAXENTRIES 8
 #define QUACKSIZE 140
 
-int circular_buffer;
+struct timeval alpha;
 
 pthread_t publisher;
 pthread_t subscriber;
@@ -21,17 +22,17 @@ struct topicentry{
     int pubID;
     char message[QUACKSIZE];
 };
-
+/*
 struct queue{
     int tail = 0; //in
     int head = 0; //out
     pthread_mutex_t topic_lock;
     struct topicentry circular_buffer[MAXENTRIES];
     int topic_counter=0;
-};
+}; */
 
 //struct queue Topic_Q_ptr[NUMTOPICS];
-tsbqueue *first_queue;
+TSBQueue *first_queue;
 bool done = false;
 
 int enqueue(struct tsbqueue *Q_ptr, struct topicentry *new_post)
@@ -62,7 +63,7 @@ int enqueue(struct tsbqueue *Q_ptr, struct topicentry *new_post)
     struct topicentry *post = (struct topicentry *)malloc(sizeof(struct topicentry));
     *post = *new_post;
 
-    if (first_queue.tsbq_add(first_queue, (void*)post) )
+    if (tsbq_add(Q_ptr, (void*)post) )
         return 1;
     else {
         free(post);
@@ -70,7 +71,7 @@ int enqueue(struct tsbqueue *Q_ptr, struct topicentry *new_post)
     }
 }
 
-int dequeue(struct queue *Q_ptr)
+int dequeue(struct tsbqueue *Q_ptr,struct timeval ts)
 {
     /*pthread_mutex_lock(&Q_ptr->topic_lock);
     if (Q_ptr->topic_counter <= 0) {
@@ -86,16 +87,26 @@ int dequeue(struct queue *Q_ptr)
     Q_ptr->topic_counter--;
     pthread_mutex_unlock(&Q_ptr->topic_lock);
     return data; */
+    struct topicentry *currententry;
+    TSIterator *current = tsbq_it_create(Q_ptr); 
+    tsit_next(current, &currententry);
 
     while (!done)
     {
-        if (first_queue.cap <= 0) {
+        if (tsbq_isEmpty(Q_ptr) != 0) {
             done = true;
             break;
         }
-        first_queue->circular_buffer.timestamp;
+        // peaking the queue
+        tsbq_peek(Q_ptr, &currententry)
+        if (currententry->timestamp < ts) {
+            // remove from the queue
+            tsbq_remove(Q_ptr, &currententry)
+            tsit_destroy(current);
+        } else {
+            done = true;
+        }
     }
-
 
 }
 
@@ -138,9 +149,6 @@ int getentry(struct tsbqueue *Q_ptr, int lastentry,struct topicentry *t)
     int newlastentry = -1;
     while (tsit_next(current, &currententry))
     {
-
-        //while (!done)
-        //{
         //check if [lastentry+1] is in the queue
         if (lastentry <= currententry->entrynum) {
             newlastentry = currententry->entrynum;
@@ -158,32 +166,15 @@ int getentry(struct tsbqueue *Q_ptr, int lastentry,struct topicentry *t)
     return newlastentry;
 }
 
-void printtopicQ(struct queue *Q_ptr)
+void printtopicQ(struct tsbqueue *Q_ptr)
 {
     printf("in  = %d\n", Q_ptr->tail);
     printf("out = %d\n", Q_ptr->head);
 }
 
 void* pub()
-{
-    printf("\n Pub thread running.\n");
-    
-    pthread_t tid = pthread_self();
-    printf("\n thread id = %d.\n", (int)tid);
-    
-    struct topicentry this_topic;
-    printf("\n Created topic entry.\n");
-
-    //printtopicQ(&Topic_Q_ptr);
-    /*
-    printf("\n Creating the topic lock.\n");
-
-    if(pthread_mutex_init(&(Topic_Q_ptr.topic_lock), NULL) != 0)
-    {
-        printf("\n mutex init has failed\n");
-    } */
-    
-    for(int i = 0; i < NUMTOPICS; i++)
+{ 
+    /*for(int i = 0; i < NUMTOPICS; i++)
     {
         printf("\n Creating a topic: %d\n", i);
         //this_topic.message = (int)(tid) * 1000 + i;
@@ -202,9 +193,23 @@ void* pub()
         }
         printf("successfully added to the queue: %d\n", indicator);
     }
-    //pthread_mutex_destroy(&(Topic_Q_ptr.topic_lock));
-    return NULL;
+    return NULL; */
+    struct topicentry *this_topic;
+    while (!done)
+    {
+        // generating topic entry()
+        printf("\n Creating a topic: %d\n", i);
+        char str[QUACKSIZE] = "This topic entry is for testing....";
+        for (int  j = 0; j < QUACKSIZE; j++) {
+            this_topic->message[i] = str[i];
+        }
 
+        if (enqueue(first_queue, this_topic) != 1) {
+            printf("failed to add to the queue!!!\n");
+        } else {
+            printf("successfully added to the queue!!!\n");
+        }
+    }
 }
 
 void* sub()
@@ -214,35 +219,38 @@ void* sub()
     Read Topic should receive the last topic that was read by sub 
     
     It will return the intdex of the next topic number that is readable */
-    printf("\n Sub thread running.\n");
-    
-    subscriber = pthread_self();
-    //printf("\n thread id = %d.\n", (int)tid);
-    // create a topic entry to hold the one taken from the queue
+
     struct topicentry *t;
     printf("\n Requested topic entry.\n");
     
     int last_entry =0;
-    
-    getentry(first_topic,last_entry,t);
+
+    while (!done)
+    {
+        last_entry = getentry(first_queue,last_entry,t);
+        sleep(10);
+    }
 }
 
 void* cleanup()
 {
     /* Activate the deque function. */
-    int Remove;
-    for (int i =0; i< NUMTOPICS; i++) {
-        Remove = dequeue(Topic_Q_ptr[i]);
+    while (!done)
+    {
+        sleep(10);
+        dequeue(first_queue, alpha);
     }
+
 }
+
 int main(int argc, char *argsv[])
 {
-    first_topic = tsbq_create(NUMTOPICS);
+    first_queue = tsbq_create(NUMTOPICS);
 
     int error;
     // initializing topic queues
     for (int i = 0; i < NUMTOPICS; i++) {
-        error = pthread_mutex_init(&(first_topic[i].lock),NULL);
+        error = pthread_mutex_init(&(first_queue[i].lock),NULL);
         if (error != 0)
             printf("\n Thread can't be created : [%s]\n", strerror(error));
     }
@@ -252,7 +260,7 @@ int main(int argc, char *argsv[])
     if (error != 0)
         printf("\n Thread can't be created : [%s]", strerror(error));
 
-    error = pthread_create(&subscriber, NULL, sub, NULL);
+    error = pthread_create(&subscriber, NULL, &sub, NULL);
     if (error != 0)
         printf("\n Thread can't be created : [%s]", strerror(error));
     
