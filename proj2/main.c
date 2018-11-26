@@ -88,8 +88,8 @@ int dequeue(struct tsbqueue *Q_ptr,struct timeval ts)
     pthread_mutex_unlock(&Q_ptr->topic_lock);
     return data; */
     struct topicentry *currententry;
-    TSIterator *current = tsbq_it_create(Q_ptr); 
-    tsit_next(current, &currententry);
+    //TSIterator *current = tsbq_it_create(Q_ptr); 
+    //tsit_next(current, &currententry);
 
     while (!done)
     {
@@ -98,11 +98,12 @@ int dequeue(struct tsbqueue *Q_ptr,struct timeval ts)
             break;
         }
         // peaking the queue
-        tsbq_peek(Q_ptr, &currententry)
+        tsbq_peek(Q_ptr, (void **)&currententry);
+        // using time-comparing function
         if (currententry->timestamp < ts) {
             // remove from the queue
-            tsbq_remove(Q_ptr, &currententry)
-            tsit_destroy(current);
+            tsbq_remove(Q_ptr, (void**)&currententry);
+            //tsit_destroy(current);
         } else {
             done = true;
         }
@@ -147,7 +148,7 @@ int getentry(struct tsbqueue *Q_ptr, int lastentry,struct topicentry *t)
     struct topicentry *currententry;
     TSIterator *current = tsbq_it_create(Q_ptr); 
     int newlastentry = -1;
-    while (tsit_next(current, &currententry))
+    while (tsit_next(current, (void**)&currententry))
     {
         //check if [lastentry+1] is in the queue
         if (lastentry <= currententry->entrynum) {
@@ -162,15 +163,15 @@ int getentry(struct tsbqueue *Q_ptr, int lastentry,struct topicentry *t)
             break;
         }
     }
-    tsit_destroy(currrent);
+    tsit_destroy(current);
     return newlastentry;
 }
-
+/*
 void printtopicQ(struct tsbqueue *Q_ptr)
 {
     printf("in  = %d\n", Q_ptr->tail);
     printf("out = %d\n", Q_ptr->head);
-}
+} */
 
 void* pub()
 { 
@@ -198,7 +199,7 @@ void* pub()
     while (!done)
     {
         // generating topic entry()
-        printf("\n Creating a topic: %d\n", i);
+        printf("\n Creating a topic: %d\n");
         char str[QUACKSIZE] = "This topic entry is for testing....";
         for (int  j = 0; j < QUACKSIZE; j++) {
             this_topic->message[i] = str[i];
@@ -228,17 +229,20 @@ void* sub()
     while (!done)
     {
         last_entry = getentry(first_queue,last_entry,t);
-        sleep(10);
+        //sleep(10);
     }
 }
 
 void* cleanup()
 {
     /* Activate the deque function. */
+    alpha = gettimeofday();
     while (!done)
     {
-        sleep(10);
+        //sleep(10);
         dequeue(first_queue, alpha);
+        // update current time 
+        alpha = gettimeofday();
     }
 
 }
@@ -246,7 +250,6 @@ void* cleanup()
 int main(int argc, char *argsv[])
 {
     first_queue = tsbq_create(NUMTOPICS);
-
     int error;
     // initializing topic queues
     for (int i = 0; i < NUMTOPICS; i++) {
