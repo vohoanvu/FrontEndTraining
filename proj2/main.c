@@ -115,8 +115,6 @@ int dequeue(struct tsbqueue *Q_ptr,struct timeval ts)
     pthread_mutex_unlock(&Q_ptr->topic_lock);
     return data; */
     struct topicentry *currententry;
-    //TSIterator *current = tsbq_it_create(Q_ptr); 
-    //tsit_next(current, &currententry);
     struct timeval result;
     while (!done)
     {
@@ -130,7 +128,6 @@ int dequeue(struct tsbqueue *Q_ptr,struct timeval ts)
         if (timeval_subtract(&result,&currententry->timestamp,&ts) == 1) {
             // remove from the queue
             tsbq_remove(Q_ptr, (void**)&currententry);
-            //tsit_destroy(current);
         } else {
             done = true;
         }
@@ -181,7 +178,8 @@ int getentry(struct tsbqueue *Q_ptr, int lastentry,struct topicentry *t)
         if (lastentry <= currententry->entrynum) {
             newlastentry = currententry->entrynum;
             //if (getentry(Q_ptr, newlastentry, currententry) < 0) // in case of failing
-                //return -1;
+            //return -1;
+            //printf("oldest is in the queue...\n");
         } else {
             // it was dequeued, found something newer
             *t = *currententry;
@@ -245,19 +243,17 @@ void* pub()
 void* sub()
 {
     /* Activate Read Topic Function
-
     Read Topic should receive the last topic that was read by sub 
-   
     It will return the intdex of the next topic number that is readable */
 
-    struct topicentry *t;
+    struct topicentry t;
     printf("\n Requested topic entry.\n");
     
     int last_entry =0;
 
     while (!done)
     {
-        last_entry = getentry(first_queue,last_entry,t);
+        last_entry = getentry(first_queue,last_entry,&t);
         sleep(10);
         //pthread_yield();
     }
@@ -290,7 +286,6 @@ int main(int argc, char *argsv[])
         if (error != 0)
             printf("\n Thread can't be created : [%s]\n", strerror(error));
     }*/
-
     // actually creating threads
     error = pthread_create(&publisher, NULL, &pub, NULL);
     if (error != 0)

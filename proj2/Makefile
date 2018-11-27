@@ -1,5 +1,5 @@
 TARGET = project2
-LIBS = -lm
+LIBS = -lm -pthread
 CC = gcc
 CFLAGS = -g -Wall
 
