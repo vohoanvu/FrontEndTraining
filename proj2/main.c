@@ -281,14 +281,15 @@ void* cleanup()
 int main(int argc, char *argsv[])
 {
     first_queue = tsbq_create(NUMTOPICS);
+    //int i;
+
     int error;
-    int i;
-    // initializing topic queues
+    /*// initializing topic queues
     for (i = 0; i < NUMTOPICS; i++) {
-        error = pthread_mutex_init(&(first_queue[i].lock),NULL);
+        error = pthread_mutex_init(&(first_queue[i]->lock),NULL);
         if (error != 0)
             printf("\n Thread can't be created : [%s]\n", strerror(error));
-    }
+    }*/
 
     // actually creating threads
     error = pthread_create(&publisher, NULL, &pub, NULL);
