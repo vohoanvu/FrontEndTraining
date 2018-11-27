@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "tsbqueue.h"
 #include "tsiterator.h"
 
@@ -34,6 +35,32 @@ struct queue{
 //struct queue Topic_Q_ptr[NUMTOPICS];
 TSBQueue *first_queue;
 bool done = false;
+
+/* Subtract the ‘struct timeval’ values X and Y,
+   storing the result in RESULT.
+   Return 1 if the difference is negative(X < Y), otherwise 0. */
+int timeval_subtract(struct timeval *result, struct timeval *x, struct timeval *y)
+{
+  /* Perform the carry for the later subtraction by updating y. */
+  if (x->tv_usec < y->tv_usec) {
+    int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
+    y->tv_usec -= 1000000 * nsec;
+    y->tv_sec += nsec;
+  }
+  if (x->tv_usec - y->tv_usec > 1000000) {
+    int nsec = (x->tv_usec - y->tv_usec) / 1000000;
+    y->tv_usec += 1000000 * nsec;
+    y->tv_sec -= nsec;
+  }
+
+  /* Compute the time remaining to wait.
+     tv_usec is certainly positive. */
+  result->tv_sec = x->tv_sec - y->tv_sec;
+  result->tv_usec = x->tv_usec - y->tv_usec;
+
+  /* Return 1 if result is negative. */
+  return x->tv_sec < y->tv_sec;
+}
 
 int enqueue(struct tsbqueue *Q_ptr, struct topicentry *new_post)
 {
@@ -90,7 +117,7 @@ int dequeue(struct tsbqueue *Q_ptr,struct timeval ts)
     struct topicentry *currententry;
     //TSIterator *current = tsbq_it_create(Q_ptr); 
     //tsit_next(current, &currententry);
-
+    struct timeval result;
     while (!done)
     {
         if (tsbq_isEmpty(Q_ptr) != 0) {
@@ -99,8 +126,8 @@ int dequeue(struct tsbqueue *Q_ptr,struct timeval ts)
         }
         // peaking the queue
         tsbq_peek(Q_ptr, (void **)&currententry);
-        // using time-comparing function
-        if (currententry->timestamp < ts) {
+        //check if currententry->timestamp < ts
+        if (timeval_subtract(&result,&currententry->timestamp,&ts) == 1) {
             // remove from the queue
             tsbq_remove(Q_ptr, (void**)&currententry);
             //tsit_destroy(current);
@@ -196,12 +223,14 @@ void* pub()
     }
     return NULL; */
     struct topicentry *this_topic;
+    int i;
+    // generating topic entry()
+    printf("\n Creating a topic: \n");
+    char str[QUACKSIZE] = "This topic entry is for testing....";
+
     while (!done)
     {
-        // generating topic entry()
-        printf("\n Creating a topic: %d\n");
-        char str[QUACKSIZE] = "This topic entry is for testing....";
-        for (int  j = 0; j < QUACKSIZE; j++) {
+        for (i = 0; i < QUACKSIZE; i++) {
             this_topic->message[i] = str[i];
         }
 
@@ -218,7 +247,7 @@ void* sub()
     /* Activate Read Topic Function
 
     Read Topic should receive the last topic that was read by sub 
-    
+   
     It will return the intdex of the next topic number that is readable */
 
     struct topicentry *t;
@@ -229,20 +258,22 @@ void* sub()
     while (!done)
     {
         last_entry = getentry(first_queue,last_entry,t);
-        //sleep(10);
+        sleep(10);
+        //pthread_yield();
     }
 }
 
 void* cleanup()
 {
     /* Activate the deque function. */
-    alpha = gettimeofday();
+    gettimeofday(&alpha, NULL);
     while (!done)
     {
-        //sleep(10);
+        sleep(10);
+        //pthread_yield();
         dequeue(first_queue, alpha);
         // update current time 
-        alpha = gettimeofday();
+        gettimeofday(&alpha, NULL);
     }
 
 }
@@ -251,8 +282,9 @@ int main(int argc, char *argsv[])
 {
     first_queue = tsbq_create(NUMTOPICS);
     int error;
+    int i;
     // initializing topic queues
-    for (int i = 0; i < NUMTOPICS; i++) {
+    for (i = 0; i < NUMTOPICS; i++) {
         error = pthread_mutex_init(&(first_queue[i].lock),NULL);
         if (error != 0)
             printf("\n Thread can't be created : [%s]\n", strerror(error));
@@ -271,3 +303,4 @@ int main(int argc, char *argsv[])
     pthread_join(subscriber, NULL);
     return 0;
 }
+
