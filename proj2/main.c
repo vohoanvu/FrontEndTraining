@@ -89,7 +89,7 @@ int enqueue(struct tsbqueue *Q_ptr, struct topicentry *new_post)
 
     struct topicentry *post = (struct topicentry *)malloc(sizeof(struct topicentry));
     *post = *new_post;
-
+    printf("added ehh\n");
     if (tsbq_add(Q_ptr, (void*)post) )
         return 1;
     else {
@@ -107,8 +107,7 @@ int dequeue(struct tsbqueue *Q_ptr,struct timeval ts)
         pthread_mutex_unlock(&Q_ptr -> topic_lock);
         return -1;
     }
-
-    int i = Q_ptr->head;
+    int i = Q_ptr->head;ru
     int data = Q_ptr->circular_buffer[i].entrynum;
     Q_ptr->head = (i +1) % MAXENTRIES;
     Q_ptr->topic_counter--;
@@ -170,7 +169,10 @@ int getentry(struct tsbqueue *Q_ptr, int lastentry,struct topicentry *t)
     } */
 
     struct topicentry *currententry;
-    TSIterator *current = tsbq_it_create(Q_ptr); 
+    TSIterator *current = tsbq_it_create(Q_ptr);
+    if (current == NULL)
+        return 1;
+
     int newlastentry = -1;
     while (tsit_next(current, (void**)&currententry))
     {
@@ -194,7 +196,7 @@ int getentry(struct tsbqueue *Q_ptr, int lastentry,struct topicentry *t)
 /*
 void printtopicQ(struct tsbqueue *Q_ptr)
 {
-    printf("in  = %d\n", Q_ptr->tail);
+    pri.ntf("in  = %d\n", Q_ptr->tail);
     printf("out = %d\n", Q_ptr->head);
 } */
 
@@ -208,7 +210,7 @@ void* pub()
         for (int  j = 0; j < QUACKSIZE; j++) {
             this_topic.message[i] = str[i];
         }
-
+ 
         int indicator = enqueue(Topic_Q_ptr[i], &this_topic);
         printtopicQ(&Topic_Q_ptr[i]);
         while (indicator == -1) // full topic queue
@@ -231,12 +233,13 @@ void* pub()
         for (i = 0; i < QUACKSIZE; i++) {
             this_topic->message[i] = str[i];
         }
-
+        sleep(2);
         if (enqueue(first_queue, this_topic) != 1) {
             printf("failed to add to the queue!!!\n");
         } else {
             printf("successfully added to the queue!!!\n");
         }
+        
     }
 }
 
@@ -249,7 +252,7 @@ void* sub()
     struct topicentry t;
     printf("\n Requested topic entry.\n");
     
-    int last_entry =0;
+    int last_entry = 0;
 
     while (!done)
     {
